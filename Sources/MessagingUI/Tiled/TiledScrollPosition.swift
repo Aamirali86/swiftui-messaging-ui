@@ -26,6 +26,12 @@
 /// }
 /// ```
 ///
+/// Scroll to a specific message by id:
+///
+/// ```swift
+/// scrollPosition.scrollTo(id: messageID, anchor: .center)
+/// ```
+///
 /// ## Dynamic Auto-scroll
 ///
 /// Adjust auto-scroll based on user's scroll position:
@@ -38,6 +44,17 @@
 /// ```
 public struct TiledScrollPosition: Equatable, Sendable {
 
+  struct ScrollTargetID: Equatable, @unchecked Sendable {
+    let value: AnyHashable
+  }
+
+  /// Where to align the target item within the visible viewport when scrolling by id.
+  public enum ScrollAnchor: Equatable, Sendable {
+    case top
+    case center
+    case bottom
+  }
+
   /// The edge to scroll to.
   public enum Edge: Equatable, Sendable {
     /// Scroll to the top of the content.
@@ -48,6 +65,12 @@ public struct TiledScrollPosition: Equatable, Sendable {
 
   /// The target edge for the next scroll action.
   var edge: Edge?
+
+  /// The target item id for the next scroll action.
+  var scrollTargetID: ScrollTargetID?
+
+  /// Where to align the target item when scrolling by id.
+  var scrollAnchor: ScrollAnchor = .center
 
   /// Whether the scroll should be animated.
   var animated: Bool = true
@@ -94,6 +117,28 @@ public struct TiledScrollPosition: Equatable, Sendable {
   ///   - animated: Whether to animate the scroll. Defaults to `true`.
   public mutating func scrollTo(edge: Edge, animated: Bool = true) {
     self.edge = edge
+    self.scrollTargetID = nil
+    self.animated = animated
+    makeDirty()
+  }
+
+  /// Scrolls to the item with the given identifier.
+  ///
+  /// If the item is not currently in the list, the scroll is deferred until it appears
+  /// (for example after prepending older messages).
+  ///
+  /// - Parameters:
+  ///   - id: The identifier of the item to scroll to. Must match ``Identifiable/id``.
+  ///   - anchor: Where to align the item in the viewport. Defaults to `.center`.
+  ///   - animated: Whether to animate the scroll. Defaults to `true`.
+  public mutating func scrollTo<ID: Hashable>(
+    id: ID,
+    anchor: ScrollAnchor = .center,
+    animated: Bool = true
+  ) {
+    self.scrollTargetID = ScrollTargetID(value: AnyHashable(id))
+    self.scrollAnchor = anchor
+    self.edge = nil
     self.animated = animated
     makeDirty()
   }

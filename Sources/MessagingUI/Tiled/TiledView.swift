@@ -399,6 +399,13 @@ final class TiledUIView<
   /// Scroll position tracking
   private var lastAppliedScrollVersion: UInt = 0
 
+  /// Deferred scroll when the target item is not in the list yet.
+  private var pendingScrollTarget: (
+    id: AnyHashable,
+    anchor: TiledScrollPosition.ScrollAnchor,
+    animated: Bool
+  )?
+
   /// Spring animator for smooth scroll animations
   private var springAnimator: SpringScrollAnimator?
 
@@ -1001,6 +1008,7 @@ final class TiledUIView<
         guard let self else { return }
         self.isApplyingItemChanges = false
         self.finishPendingLoadingIndicatorHides()
+        self.applyPendingScrollToItemIfNeeded()
       }
       return
     }
@@ -1028,6 +1036,7 @@ final class TiledUIView<
       } else {
         isApplyingItemChanges = false
         finishPendingLoadingIndicatorHides()
+        applyPendingScrollToItemIfNeeded()
       }
       return
     }
@@ -1074,8 +1083,10 @@ final class TiledUIView<
 
       pendingActionsOnLayoutSubviews.append { [weak self, scrollsToBottomOnReplace] in
         guard let self else { return }
-        
-        if scrollsToBottomOnReplace {
+
+        if self.pendingScrollTarget != nil {
+          self.applyPendingScrollToItemIfNeeded()
+        } else if scrollsToBottomOnReplace {
           scrollTo(edge: .bottom, animated: false)
         }
       }
@@ -1576,11 +1587,65 @@ final class TiledUIView<
     guard position.version > lastAppliedScrollVersion else { return }
     lastAppliedScrollVersion = position.version
 
+    if let targetID = position.scrollTargetID?.value {
+      scrollToItem(
+        id: targetID,
+        anchor: position.scrollAnchor,
+        animated: position.animated
+      )
+      return
+    }
+
     guard let edge = position.edge else { return }
 
     scrollTo(edge: edge, animated: position.animated)
   }
-  
+
+  private func scrollToItem(
+    id: AnyHashable,
+    anchor: TiledScrollPosition.ScrollAnchor,
+    animated: Bool
+  ) {
+    guard let index = items.firstIndex(where: { AnyHashable($0.id) == id }) else {
+      pendingScrollTarget = (id, anchor, animated)
+      return
+    }
+
+    pendingScrollTarget = nil
+    scrollToItem(at: index, anchor: anchor, animated: animated)
+  }
+
+  private func applyPendingScrollToItemIfNeeded() {
+    guard let pendingScrollTarget else { return }
+    scrollToItem(
+      id: pendingScrollTarget.id,
+      anchor: pendingScrollTarget.anchor,
+      animated: pendingScrollTarget.animated
+    )
+  }
+
+  private func scrollToItem(
+    at index: Int,
+    anchor: TiledScrollPosition.ScrollAnchor,
+    animated: Bool
+  ) {
+    collectionView.layoutIfNeeded()
+
+    let indexPath = DisplaySection.messages.indexPath(item: index)
+    let position: UICollectionView.ScrollPosition
+    switch anchor {
+    case .top:
+      position = .top
+    case .center:
+      position = .centeredVertically
+    case .bottom:
+      position = .bottom
+    }
+
+    collectionView.scrollToItem(at: indexPath, at: position, animated: animated)
+    collectionView.flashScrollIndicators()
+  }
+
   private func scrollTo(edge: TiledScrollPosition.Edge, animated: Bool) {
 
     collectionView.layoutIfNeeded()
@@ -2199,6 +2264,9 @@ struct TiledViewRepresentable<
 /// // Scroll to edges
 /// scrollPosition.scrollTo(edge: .top)
 /// scrollPosition.scrollTo(edge: .bottom, animated: true)
+///
+/// // Scroll to a specific message
+/// scrollPosition.scrollTo(id: message.id, anchor: .center)
 ///
 /// // Auto-scroll on append (for chat "stick to bottom" behavior)
 /// scrollPosition.autoScrollsToBottomOnAppend = true
