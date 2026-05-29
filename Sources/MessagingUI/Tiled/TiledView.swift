@@ -628,6 +628,9 @@ final class TiledUIView<
       collectionView.contentInsetAdjustmentBehavior = .never
       collectionView.automaticallyAdjustsScrollIndicatorInsets = false
       collectionView.isPrefetchingEnabled = false
+      collectionView.keyboardDismissMode = .interactive
+      collectionView.showsVerticalScrollIndicator = false
+      collectionView.showsHorizontalScrollIndicator = false
       
       registerCell(TiledViewCell<Cell>.self, kind: .item)
       registerCell(TiledViewCell<PrependLoadingView>.self, kind: .prependLoader)
