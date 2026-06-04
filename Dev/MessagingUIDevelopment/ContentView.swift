@@ -6,21 +6,12 @@
 //
 
 import SwiftUI
-import MessagingUI
 
 enum DemoDestination: Hashable {
   case tiledView
   case tiledViewLoadingIndicator
   case tiledViewTypingIndicator
   case tiledViewHeaderContent
-  case lazyVStack
-  case list
-  case messenger
-  case messengerSwiftData
-  case messengerBidirectional
-  case applyDiffDemo
-  case batchUpdateRepro
-  case swiftDataMemo
 }
 
 struct ContentView: View {
@@ -30,169 +21,55 @@ struct ContentView: View {
   var body: some View {
     NavigationStack {
       List {
-        Section("Featured") {
-          if #available(iOS 17, *) {
-            NavigationLink(value: DemoDestination.messengerSwiftData) {
-              Label {
-                VStack(alignment: .leading) {
-                  Text("Messenger + SwiftData")
-                  Text("Persistent chat with status")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                }
-              } icon: {
-                Image(systemName: "message.badge.checkmark.fill")
-              }
+        NavigationLink(value: DemoDestination.tiledView) {
+          Label {
+            VStack(alignment: .leading) {
+              Text("TiledView")
+              Text("UICollectionView based")
+                .font(.caption)
+                .foregroundStyle(.secondary)
             }
+          } icon: {
+            Image(systemName: "square.grid.2x2")
           }
         }
 
-        Section("Demos") {
-          NavigationLink(value: DemoDestination.tiledView) {
-            Label {
-              VStack(alignment: .leading) {
-                Text("TiledView")
-                Text("UICollectionView based")
-                  .font(.caption)
-                  .foregroundStyle(.secondary)
-              }
-            } icon: {
-              Image(systemName: "square.grid.2x2")
+        NavigationLink(value: DemoDestination.tiledViewLoadingIndicator) {
+          Label {
+            VStack(alignment: .leading) {
+              Text("Loading Indicators")
+              Text("Header/Footer loading spinners")
+                .font(.caption)
+                .foregroundStyle(.secondary)
             }
-          }
-
-          NavigationLink(value: DemoDestination.tiledViewLoadingIndicator) {
-            Label {
-              VStack(alignment: .leading) {
-                Text("Loading Indicators")
-                Text("Header/Footer loading spinners")
-                  .font(.caption)
-                  .foregroundStyle(.secondary)
-              }
-            } icon: {
-              Image(systemName: "arrow.trianglehead.2.clockwise.rotate.90")
-            }
-          }
-
-          NavigationLink(value: DemoDestination.tiledViewTypingIndicator) {
-            Label {
-              VStack(alignment: .leading) {
-                Text("Typing Indicator")
-                Text("Show typing status at bottom")
-                  .font(.caption)
-                  .foregroundStyle(.secondary)
-              }
-            } icon: {
-              Image(systemName: "ellipsis.bubble")
-            }
-          }
-
-          NavigationLink(value: DemoDestination.tiledViewHeaderContent) {
-            Label {
-              VStack(alignment: .leading) {
-                Text("Header Content")
-                Text("Static header above messages")
-                  .font(.caption)
-                  .foregroundStyle(.secondary)
-              }
-            } icon: {
-              Image(systemName: "text.badge.star")
-            }
-          }
-
-          NavigationLink(value: DemoDestination.lazyVStack) {
-            Label {
-              VStack(alignment: .leading) {
-                Text("LazyVStack")
-                Text("SwiftUI native")
-                  .font(.caption)
-                  .foregroundStyle(.secondary)
-              }
-            } icon: {
-              Image(systemName: "list.bullet")
-            }
-          }
-
-          NavigationLink(value: DemoDestination.list) {
-            Label {
-              VStack(alignment: .leading) {
-                Text("List")
-                Text("SwiftUI List")
-                  .font(.caption)
-                  .foregroundStyle(.secondary)
-              }
-            } icon: {
-              Image(systemName: "list.bullet.rectangle")
-            }
-          }
-
-          NavigationLink(value: DemoDestination.messenger) {
-            Label {
-              VStack(alignment: .leading) {
-                Text("Messenger")
-                Text("Chat bubble demo")
-                  .font(.caption)
-                  .foregroundStyle(.secondary)
-              }
-            } icon: {
-              Image(systemName: "message.fill")
-            }
-          }
-
-          NavigationLink(value: DemoDestination.applyDiffDemo) {
-            Label {
-              VStack(alignment: .leading) {
-                Text("applyDiff Demo")
-                Text("Auto-detect array changes")
-                  .font(.caption)
-                  .foregroundStyle(.secondary)
-              }
-            } icon: {
-              Image(systemName: "arrow.triangle.2.circlepath")
-            }
-          }
-
-          NavigationLink(value: DemoDestination.batchUpdateRepro) {
-            Label {
-              VStack(alignment: .leading) {
-                Text("Batch Update Repro")
-                Text("Invalid UICollectionView updates")
-                  .font(.caption)
-                  .foregroundStyle(.secondary)
-              }
-            } icon: {
-              Image(systemName: "exclamationmark.triangle")
-            }
+          } icon: {
+            Image(systemName: "arrow.trianglehead.2.clockwise.rotate.90")
           }
         }
 
-        Section("SwiftData Integration") {
-          if #available(iOS 17, *) {
-            NavigationLink(value: DemoDestination.messengerBidirectional) {
-              Label {
-                VStack(alignment: .leading) {
-                  Text("Messenger (Bidirectional)")
-                  Text("Load from middle, scroll both ways")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                }
-              } icon: {
-                Image(systemName: "arrow.up.arrow.down")
-              }
+        NavigationLink(value: DemoDestination.tiledViewTypingIndicator) {
+          Label {
+            VStack(alignment: .leading) {
+              Text("Typing Indicator")
+              Text("Show typing status at bottom")
+                .font(.caption)
+                .foregroundStyle(.secondary)
             }
+          } icon: {
+            Image(systemName: "ellipsis.bubble")
+          }
+        }
 
-            NavigationLink(value: DemoDestination.swiftDataMemo) {
-              Label {
-                VStack(alignment: .leading) {
-                  Text("Memo Stream")
-                  Text("SwiftData + TiledView pagination")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                }
-              } icon: {
-                Image(systemName: "note.text")
-              }
+        NavigationLink(value: DemoDestination.tiledViewHeaderContent) {
+          Label {
+            VStack(alignment: .leading) {
+              Text("Header Content")
+              Text("Static header above messages")
+                .font(.caption)
+                .foregroundStyle(.secondary)
             }
+          } icon: {
+            Image(systemName: "text.badge.star")
           }
         }
       }
@@ -200,7 +77,7 @@ struct ContentView: View {
       .navigationDestination(for: DemoDestination.self) { destination in
         switch destination {
         case .tiledView:
-          BookTiledView(namespace: namespace)       
+          BookTiledView(namespace: namespace)
         case .tiledViewLoadingIndicator:
           BookTiledViewLoadingIndicator()
             .navigationBarTitleDisplayMode(.inline)
@@ -210,39 +87,6 @@ struct ContentView: View {
         case .tiledViewHeaderContent:
           BookTiledViewHeaderContent()
             .navigationBarTitleDisplayMode(.inline)
-        case .lazyVStack:
-          LazyVStackDemo()
-        case .list:
-          ListDemo()
-        case .messenger:
-          MessengerDemo()
-        case .messengerSwiftData:
-          if #available(iOS 17, *) {
-            MessengerSwiftDataDemo()
-          } else {
-            Text("Requires iOS 17 or later")
-          }
-        case .messengerBidirectional:
-          if #available(iOS 17, *) {
-            MessengerSwiftDataDemo(loadPosition: .middle)
-          } else {
-            Text("Requires iOS 17 or later")
-          }
-        case .applyDiffDemo:
-          BookApplyDiffDemo()
-            .navigationTitle("applyDiff Demo")
-            .navigationBarTitleDisplayMode(.inline)
-        case .batchUpdateRepro:
-          BatchUpdateReproDemo()
-            .navigationTitle("Batch Update Repro")
-            .navigationBarTitleDisplayMode(.inline)
-        case .swiftDataMemo:
-          if #available(iOS 17, *) {
-            SwiftDataMemoDemo()
-              .navigationBarTitleDisplayMode(.inline)
-          } else {
-            Text("Requires iOS 17 or later")
-          }
         }
       }
       .navigationDestination(for: ChatMessage.self) { message in

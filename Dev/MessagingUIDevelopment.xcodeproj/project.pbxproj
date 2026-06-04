@@ -8,12 +8,10 @@
 
 /* Begin PBXBuildFile section */
 		B039B87B2EAFA380008B41EF /* MessagingUI in Frameworks */ = {isa = PBXBuildFile; productRef = B039B87A2EAFA380008B41EF /* MessagingUI */; };
-		B039B88D2EAFA565008B41EF /* MessagingUI in Frameworks */ = {isa = PBXBuildFile; productRef = B039B88C2EAFA565008B41EF /* MessagingUI */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		B039B8632EAFA31B008B41EF /* MessagingUIDevelopment.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MessagingUIDevelopment.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		B09CD2F22EF6FED200255CF6 /* Umbrella */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Umbrella; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -30,7 +28,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				B039B87B2EAFA380008B41EF /* MessagingUI in Frameworks */,
-				B039B88D2EAFA565008B41EF /* MessagingUI in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -40,7 +37,6 @@
 		B039B85A2EAFA31B008B41EF = {
 			isa = PBXGroup;
 			children = (
-				B09CD2F22EF6FED200255CF6 /* Umbrella */,
 				B039B8652EAFA31B008B41EF /* MessagingUIDevelopment */,
 				B039B8642EAFA31B008B41EF /* Products */,
 			);
@@ -75,7 +71,6 @@
 			name = MessagingUIDevelopment;
 			packageProductDependencies = (
 				B039B87A2EAFA380008B41EF /* MessagingUI */,
-				B039B88C2EAFA565008B41EF /* MessagingUI */,
 			);
 			productName = MessagingUIDevelopment;
 			productReference = B039B8632EAFA31B008B41EF /* MessagingUIDevelopment.app */;
@@ -106,6 +101,7 @@
 			mainGroup = B039B85A2EAFA31B008B41EF;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
+				B09CD2F32EF6FED200255CF7 /* XCLocalSwiftPackageReference ".." */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = B039B8642EAFA31B008B41EF /* Products */;
@@ -347,13 +343,17 @@
 		};
 /* End XCConfigurationList section */
 
+/* Begin XCLocalSwiftPackageReference section */
+		B09CD2F32EF6FED200255CF7 /* XCLocalSwiftPackageReference ".." */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ..;
+		};
+/* End XCLocalSwiftPackageReference section */
+
 /* Begin XCSwiftPackageProductDependency section */
 		B039B87A2EAFA380008B41EF /* MessagingUI */ = {
 			isa = XCSwiftPackageProductDependency;
-			productName = MessagingUI;
-		};
-		B039B88C2EAFA565008B41EF /* MessagingUI */ = {
-			isa = XCSwiftPackageProductDependency;
+			package = B09CD2F32EF6FED200255CF7 /* XCLocalSwiftPackageReference ".." */;
 			productName = MessagingUI;
 		};
 /* End XCSwiftPackageProductDependency section */
