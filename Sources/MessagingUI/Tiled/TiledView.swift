@@ -92,30 +92,6 @@ private struct EdgeLoadTrigger<Indicator: View>: ~Copyable {
   }
 }
 
-/// MARK: - RevealGestureState
-
-/// Encapsulates state for swipe-to-reveal gesture handling.
-private struct RevealGestureState: ~Copyable {
-
-  /// Pan gesture recognizer for horizontal swipe-to-reveal
-  var panGesture: UIPanGestureRecognizer?
-
-  /// Minimum movement in points before determining gesture direction
-  let directionThreshold: CGFloat = 10
-
-  /// Whether the gesture direction has been determined
-  var isDirectionDetermined = false
-
-  /// Whether the current gesture is recognized as a reveal gesture (horizontal swipe)
-  var isActive = false
-
-  /// Resets the gesture state for a new gesture
-  mutating func reset() {
-    isDirectionDetermined = false
-    isActive = false
-  }
-}
-
 // MARK: - Loader
 
 /// Configuration for edge loading with indicator view.
@@ -324,7 +300,7 @@ final class TiledUIView<
 
   private var items: Deque<Item> = []
   private var displayedAccessoryState = DisplayedAccessoryState()
-  private let cellBuilder: (Item, CellReveal?, CellStateStorage<StateValue>) -> Cell
+  private let cellBuilder: (Item, CellStateStorage<StateValue>) -> Cell
   private let makeInitialState: (Item) -> StateValue
 
   private enum AccessoryDisplayItem: Equatable {
@@ -437,23 +413,6 @@ final class TiledUIView<
 
   /// Track if already triggered to avoid multiple calls per drag session
   private var hasDraggedIntoBottomSafeArea: Bool = false
-
-  // MARK: - Reveal Offset (Swipe-to-Reveal)
-
-  /// Shared observable state for reveal offset
-  let cellReveal = CellReveal()
-
-  /// Configuration for reveal gesture
-  var revealConfiguration: RevealConfiguration = .default
-
-  /// Sets the reveal offset, updating observable state.
-  private func setRevealOffset(_ newValue: CGFloat) {
-    guard cellReveal.offset != newValue else { return }
-    cellReveal.offset = newValue
-  }
-
-  /// State for swipe-to-reveal gesture handling
-  private var revealGestureState = RevealGestureState()
 
   // MARK: - Loading
 
@@ -602,7 +561,7 @@ final class TiledUIView<
 
   init(
     makeInitialState: @escaping (Item) -> StateValue,
-    cellBuilder: @escaping (Item, CellReveal?, CellStateStorage<StateValue>) -> Cell
+    cellBuilder: @escaping (Item, CellStateStorage<StateValue>) -> Cell
   ) {
     self.makeInitialState = makeInitialState
     self.cellBuilder = cellBuilder
@@ -656,14 +615,6 @@ final class TiledUIView<
         bottomSafeAreaPanGesture.delegate = self
         collectionView.addGestureRecognizer(bottomSafeAreaPanGesture)
         self.bottomSafeAreaPanGesture = bottomSafeAreaPanGesture
-      }
-
-      // Setup reveal pan gesture for horizontal swipe-to-reveal
-      do {
-        let revealGesture = UIPanGestureRecognizer(target: self, action: #selector(handleRevealPanGesture(_:)))
-        revealGesture.delegate = self
-        collectionView.addGestureRecognizer(revealGesture)
-        revealGestureState.panGesture = revealGesture
       }
 
       addSubview(collectionView)
@@ -720,7 +671,7 @@ final class TiledUIView<
       guard indexPath.item >= 0, indexPath.item < items.count else { return .zero }
       let item = items[indexPath.item]
       let storage = getOrCreateStorage(for: item)
-      return measureHostedCellSize(cellBuilder(item, cellReveal, storage), width: width, using: itemSizingCell)
+      return measureHostedCellSize(cellBuilder(item, storage), width: width, using: itemSizingCell)
 
     case .prependLoader, .headerContent, .typingIndicator, .appendLoader:
       guard let displayItem = accessoryDisplayItem(at: indexPath) else { return nil }
@@ -1263,7 +1214,7 @@ final class TiledUIView<
       if indexPath.item < items.count {
         let item = items[indexPath.item]
         let storage = getOrCreateStorage(for: item)
-        return dequeueCell(collectionView, at: indexPath, kind: .item, content: cellBuilder(item, cellReveal, storage))
+        return dequeueCell(collectionView, at: indexPath, kind: .item, content: cellBuilder(item, storage))
       } else {
         return dequeueEmptyCell(collectionView, at: indexPath)
       }
@@ -1506,60 +1457,6 @@ final class TiledUIView<
     }
   }
 
-  // MARK: - Reveal Offset (Swipe-to-Reveal)
-
-  /// Handles the dedicated pan gesture for horizontal swipe-to-reveal.
-  @objc private func handleRevealPanGesture(_ gesture: UIPanGestureRecognizer) {
-    guard revealConfiguration.isEnabled else { return }
-
-    switch gesture.state {
-    case .began:
-      revealGestureState.reset()
-
-    case .changed:
-      let translation = gesture.translation(in: gesture.view)
-
-      // Determine gesture direction if not yet determined
-      if !revealGestureState.isDirectionDetermined {
-        let totalMovement = abs(translation.x) + abs(translation.y)
-
-        // Wait until we have enough movement to determine direction
-        if totalMovement < revealGestureState.directionThreshold {
-          return
-        }
-
-        revealGestureState.isDirectionDetermined = true
-
-        // Check if gesture is predominantly horizontal left swipe
-        // Horizontal movement must be greater than vertical movement
-        if abs(translation.x) > abs(translation.y) && translation.x < 0 {
-          revealGestureState.isActive = true
-        } else {
-          // This is a vertical scroll or right swipe, ignore for reveal
-          revealGestureState.isActive = false
-          return
-        }
-      }
-
-      // If not a reveal gesture, ignore
-      guard revealGestureState.isActive else { return }
-
-      // Convert left swipe (negative x) to positive rawOffset
-      let rawOffset = -translation.x
-
-      // Subtract direction threshold so movement starts at 0
-      let adjustedOffset = rawOffset - revealGestureState.directionThreshold
-      setRevealOffset(max(0, adjustedOffset))
-
-    case .ended, .cancelled:
-      snapBackReveal()
-      revealGestureState.reset()
-
-    default:
-      break
-    }
-  }
-
   // MARK: - UIGestureRecognizerDelegate
 
   /// Allow simultaneous recognition with scroll view's pan gesture.
@@ -1567,21 +1464,7 @@ final class TiledUIView<
     _ gestureRecognizer: UIGestureRecognizer,
     shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer
   ) -> Bool {
-    if gestureRecognizer == bottomSafeAreaPanGesture || otherGestureRecognizer == bottomSafeAreaPanGesture {
-      return true
-    }
-    // Allow reveal gesture to work with scroll view
-    if gestureRecognizer == revealGestureState.panGesture || otherGestureRecognizer == revealGestureState.panGesture {
-      return true
-    }
-    return false
-  }
-
-  /// Animates reveal offset back to zero with spring animation.
-  private func snapBackReveal() {
-    withAnimation(.snappy) {
-      setRevealOffset(0)
-    }
+    gestureRecognizer == bottomSafeAreaPanGesture || otherGestureRecognizer == bottomSafeAreaPanGesture
   }
 
   // MARK: - Scroll Position
@@ -2094,13 +1977,12 @@ struct TiledViewRepresentable<
 
   let items: [Item]
   let makeInitialState: (Item) -> StateValue
-  let cellBuilder: (Item, CellReveal?, CellStateStorage<StateValue>) -> Cell
+  let cellBuilder: (Item, CellStateStorage<StateValue>) -> Cell
   let onTiledScrollGeometryChange: ((TiledScrollGeometry) -> Void)?
   let onTapBackground: (() -> Void)?
   let onDragIntoBottomSafeArea: (() -> Void)?
   let additionalContentInset: EdgeInsets
   let swiftUIWorldSafeAreaInset: EdgeInsets
-  let revealConfiguration: RevealConfiguration
   let prependLoader: Loader<PrependLoadingView>?
   let appendLoader: Loader<AppendLoadingView>?
   let typingIndicator: TypingIndicator<TypingIndicatorContent>?
@@ -2116,12 +1998,11 @@ struct TiledViewRepresentable<
     onDragIntoBottomSafeArea: (() -> Void)? = nil,
     additionalContentInset: EdgeInsets = .init(),
     swiftUIWorldSafeAreaInset: EdgeInsets = .init(),
-    revealConfiguration: RevealConfiguration = .default,
     prependLoader: Loader<PrependLoadingView>?,
     appendLoader: Loader<AppendLoadingView>?,
     typingIndicator: TypingIndicator<TypingIndicatorContent>?,
     headerContent: HeaderContent<HeaderContentView>?,
-    cellBuilder: @escaping (Item, CellReveal?, CellStateStorage<StateValue>) -> Cell
+    cellBuilder: @escaping (Item, CellStateStorage<StateValue>) -> Cell
   ) {
     self.items = items
     self._scrollPosition = scrollPosition
@@ -2131,7 +2012,6 @@ struct TiledViewRepresentable<
     self.onDragIntoBottomSafeArea = onDragIntoBottomSafeArea
     self.additionalContentInset = additionalContentInset
     self.swiftUIWorldSafeAreaInset = swiftUIWorldSafeAreaInset
-    self.revealConfiguration = revealConfiguration
     self.prependLoader = prependLoader
     self.appendLoader = appendLoader
     self.typingIndicator = typingIndicator
@@ -2169,7 +2049,6 @@ struct TiledViewRepresentable<
 
     uiView.onTapBackground = onTapBackground
     uiView.onDragIntoBottomSafeArea = onDragIntoBottomSafeArea
-    uiView.revealConfiguration = revealConfiguration
 
     // Update loaders, typing indicator, and header content
     uiView.setLoaders(prepend: prependLoader, append: appendLoader)
@@ -2346,12 +2225,11 @@ public struct TiledView<
 
   let items: [Item]
   let makeInitialState: (Item) -> StateValue
-  let cellBuilder: (Item, CellReveal?, CellStateStorage<StateValue>) -> Cell
+  let cellBuilder: (Item, CellStateStorage<StateValue>) -> Cell
   var onTiledScrollGeometryChange: ((TiledScrollGeometry) -> Void)?
   var onTapBackground: (() -> Void)?
   var onDragIntoBottomSafeArea: (() -> Void)?
   var additionalContentInset: EdgeInsets = .init()
-  var revealConfiguration: RevealConfiguration = .default
   let prependLoader: Loader<PrependLoadingView>?
   let appendLoader: Loader<AppendLoadingView>?
   let typingIndicator: TypingIndicator<TypingIndicatorContent>?
@@ -2362,12 +2240,11 @@ public struct TiledView<
   init(
     items: [Item],
     makeInitialState: @escaping (Item) -> StateValue,
-    cellBuilder: @escaping (Item, CellReveal?, CellStateStorage<StateValue>) -> Cell,
+    cellBuilder: @escaping (Item, CellStateStorage<StateValue>) -> Cell,
     onTiledScrollGeometryChange: ((TiledScrollGeometry) -> Void)?,
     onTapBackground: (() -> Void)?,
     onDragIntoBottomSafeArea: (() -> Void)?,
     additionalContentInset: EdgeInsets,
-    revealConfiguration: RevealConfiguration,
     prependLoader: Loader<PrependLoadingView>?,
     appendLoader: Loader<AppendLoadingView>?,
     typingIndicator: TypingIndicator<TypingIndicatorContent>?,
@@ -2381,7 +2258,6 @@ public struct TiledView<
     self.onTapBackground = onTapBackground
     self.onDragIntoBottomSafeArea = onDragIntoBottomSafeArea
     self.additionalContentInset = additionalContentInset
-    self.revealConfiguration = revealConfiguration
     self.prependLoader = prependLoader
     self.appendLoader = appendLoader
     self.typingIndicator = typingIndicator
@@ -2428,10 +2304,9 @@ extension TiledView where PrependLoadingView == Never, AppendLoadingView == Neve
     self.appendLoader = nil
     self.typingIndicator = nil
     self.headerContent = nil
-    self.cellBuilder = { item, cellReveal, storage in
+    self.cellBuilder = { item, storage in
       TiledCellContentWrapper(
         content: cellBuilder(item),
-        cellReveal: cellReveal,
         state: storage
       )
     }
@@ -2475,7 +2350,6 @@ extension TiledView where PrependLoadingView == Never {
       onTapBackground: onTapBackground,
       onDragIntoBottomSafeArea: onDragIntoBottomSafeArea,
       additionalContentInset: additionalContentInset,
-      revealConfiguration: revealConfiguration,
       prependLoader: loader,
       appendLoader: appendLoader,
       typingIndicator: typingIndicator,
@@ -2499,7 +2373,6 @@ extension TiledView where AppendLoadingView == Never {
       onTapBackground: onTapBackground,
       onDragIntoBottomSafeArea: onDragIntoBottomSafeArea,
       additionalContentInset: additionalContentInset,
-      revealConfiguration: revealConfiguration,
       prependLoader: prependLoader,
       appendLoader: loader,
       typingIndicator: typingIndicator,
@@ -2523,7 +2396,6 @@ extension TiledView where TypingIndicatorContent == Never {
       onTapBackground: onTapBackground,
       onDragIntoBottomSafeArea: onDragIntoBottomSafeArea,
       additionalContentInset: additionalContentInset,
-      revealConfiguration: revealConfiguration,
       prependLoader: prependLoader,
       appendLoader: appendLoader,
       typingIndicator: indicator,
@@ -2547,7 +2419,6 @@ extension TiledView where HeaderContentView == Never {
       onTapBackground: onTapBackground,
       onDragIntoBottomSafeArea: onDragIntoBottomSafeArea,
       additionalContentInset: additionalContentInset,
-      revealConfiguration: revealConfiguration,
       prependLoader: prependLoader,
       appendLoader: appendLoader,
       typingIndicator: typingIndicator,
@@ -2572,7 +2443,6 @@ extension TiledView {
         onDragIntoBottomSafeArea: onDragIntoBottomSafeArea,
         additionalContentInset: additionalContentInset,
         swiftUIWorldSafeAreaInset: proxy.safeAreaInsets,
-        revealConfiguration: revealConfiguration,
         prependLoader: prependLoader,
         appendLoader: appendLoader,
         typingIndicator: typingIndicator,
@@ -2638,23 +2508,6 @@ extension TiledView {
     _ action: @escaping () -> Void
   ) -> Self {
     self.onDragIntoBottomSafeArea = action
-    return self
-  }
-
-  /// Sets the configuration for the swipe-to-reveal gesture.
-  ///
-  /// Use this to customize the reveal behavior or disable it entirely.
-  /// The reveal gesture allows users to swipe left to reveal timestamps
-  /// or other content on the right side of messages.
-  ///
-  /// ```swift
-  /// TiledView(...)
-  ///   .revealConfiguration(.init(maxOffset: 100))
-  /// ```
-  public consuming func revealConfiguration(
-    _ configuration: RevealConfiguration
-  ) -> Self {
-    self.revealConfiguration = configuration
     return self
   }
 }

@@ -12,7 +12,7 @@ import SwiftUI
 /// A protocol for defining cell content in TiledView.
 ///
 /// Conforming types describe how to render a cell given an item and context.
-/// The context provides access to reveal offset and per-cell state storage.
+/// The context provides access to per-cell state storage.
 ///
 /// ## Example
 ///
@@ -51,7 +51,7 @@ public protocol TiledCellContent {
 
   /// Creates the view for this cell.
   ///
-  /// - Parameter context: The cell context providing reveal offset and per-cell state.
+  /// - Parameter context: The cell context providing per-cell state.
   /// - Returns: The view to display for this cell.
   @ViewBuilder
   func body(context: CellContext<StateValue>) -> Body
@@ -61,32 +61,8 @@ public protocol TiledCellContent {
 
 /// Context provided to `TiledCellContent.body(context:)`.
 ///
-/// Provides access to cell-related state including reveal offset and per-cell storage.
+/// Provides access to per-cell state storage.
 public struct CellContext<StateValue> {
-
-  /// The shared reveal state for swipe-to-reveal gesture.
-  ///
-  /// Returns `nil` when:
-  /// - The view is not inside a `TiledView`
-  /// - The `TiledView` has reveal disabled (`.revealConfiguration(.disabled)`)
-  ///
-  /// ## Example
-  ///
-  /// ```swift
-  /// func body(context: CellContext<MyState>) -> some View {
-  ///   let offset = context.cellReveal?.rubberbandedOffset(max: 60) ?? 0
-  ///
-  ///   HStack {
-  ///     content
-  ///       .offset(x: -offset)
-  ///
-  ///     timestamp
-  ///       .offset(x: 60 - offset)
-  ///   }
-  ///   .clipped()
-  /// }
-  /// ```
-  public let cellReveal: CellReveal?
 
   /// Per-cell state storage.
   ///
@@ -163,8 +139,7 @@ public struct CellContext<StateValue> {
   /// ```
   public let state: CellStateStorage<StateValue>
 
-  init(cellReveal: CellReveal?, state: CellStateStorage<StateValue>) {
-    self.cellReveal = cellReveal
+  init(state: CellStateStorage<StateValue>) {
     self.state = state
   }
 }
@@ -172,51 +147,20 @@ public struct CellContext<StateValue> {
 // MARK: - Internal Wrapper View
 
 /// Internal view that wraps TiledCellContent and provides the context.
-///
-/// All dependencies are passed via init (no Environment usage).
 public struct TiledCellContentWrapper<Content: TiledCellContent>: View {
 
   let content: Content
-  let cellReveal: CellReveal?
   @ObservedObject var state: CellStateStorage<Content.StateValue>
 
   public init(
     content: Content,
-    cellReveal: CellReveal?,
     state: CellStateStorage<Content.StateValue>
   ) {
     self.content = content
-    self.cellReveal = cellReveal
     self._state = ObservedObject(wrappedValue: state)
   }
 
   public var body: some View {
-    if let cellReveal {
-      TiledCellContentWrapperWithReveal(
-        content: content,
-        cellReveal: cellReveal,
-        state: state
-      )
-    } else {
-      content.body(context: CellContext(
-        cellReveal: nil,
-        state: state
-      ))
-    }
-  }
-}
-
-/// Observes shared reveal offset so swipe-to-reveal updates propagate on iOS 16.
-private struct TiledCellContentWrapperWithReveal<Content: TiledCellContent>: View {
-
-  let content: Content
-  @ObservedObject var cellReveal: CellReveal
-  @ObservedObject var state: CellStateStorage<Content.StateValue>
-
-  var body: some View {
-    content.body(context: CellContext(
-      cellReveal: cellReveal,
-      state: state
-    ))
+    content.body(context: CellContext(state: state))
   }
 }

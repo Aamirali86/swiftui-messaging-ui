@@ -10,9 +10,9 @@ Chat UIs are deceptively complex. They need to handle smooth bidirectional scrol
 
 This library focuses on the hard parts of chat UI infrastructure, so each app can compose its own experience on top.
 
-| Auto Scrolling | Prepending without jumps | Revealing Info |
-| :--- | :--- | :-- |
-| ![video2](https://github.com/user-attachments/assets/e21ff76e-5b39-45b2-b13b-c608d15414e7)| ![video1](https://github.com/user-attachments/assets/5325bbd0-38bc-4504-868d-e379b2ba3f2f) | ![Simulator Screen Recording - iPhone 17 Pro - 2025-12-19 at 15 45 00](https://github.com/user-attachments/assets/fa654218-9104-4737-ba23-8677c0955fc1) |
+| Auto Scrolling | Prepending without jumps |
+| :--- | :--- |
+| ![video2](https://github.com/user-attachments/assets/e21ff76e-5b39-45b2-b13b-c608d15414e7)| ![video1](https://github.com/user-attachments/assets/5325bbd0-38bc-4504-868d-e379b2ba3f2f) |
 
 | Loading Indicator (top, bottom) | Typing Indicator |
 | :--- | :--- |
@@ -176,52 +176,6 @@ Button("Scroll to Bottom") {
 Button("Scroll to Top") {
   scrollPosition.scrollTo(edge: .top, animated: false)
 }
-```
-
-### Swipe to Reveal Timestamps
-
-iMessage-style horizontal swipe gesture to reveal timestamps. Use `CellContext` to access the reveal offset:
-
-```swift
-struct MessageBubbleCell: TiledCellContent {
-  typealias StateValue = Void
-  let item: Message
-
-  func body(context: CellContext<Void>) -> some View {
-    // Get the reveal offset with rubber band effect
-    let offset = context.cellReveal?.rubberbandedOffset(max: 60) ?? 0
-
-    HStack(alignment: .bottom, spacing: 8) {
-      if item.isFromMe {
-        Spacer()
-        // Timestamp fades in as user swipes
-        Text(item.timestamp, style: .time)
-          .font(.caption2)
-          .foregroundStyle(.secondary)
-          .opacity(offset / 40)
-
-        MessageBubble(message: item)
-          .offset(x: -offset)  // Slide left to reveal
-      } else {
-        MessageBubble(message: item)
-          .offset(x: -offset)
-
-        Text(item.timestamp, style: .time)
-          .font(.caption2)
-          .foregroundStyle(.secondary)
-          .opacity(offset / 40)
-        Spacer()
-      }
-    }
-  }
-}
-```
-
-To disable the reveal gesture:
-
-```swift
-TiledView(...)
-  .revealConfiguration(.disabled)
 ```
 
 ### Typing Indicator
