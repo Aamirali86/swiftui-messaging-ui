@@ -36,7 +36,7 @@ final class SpringAnimator {
   private nonisolated(unsafe) var displayLink: CADisplayLink?
 
   /// The spring configuration
-  let spring: Spring
+  let spring: SpringAnimationConfiguration
 
   /// Current animated value
   private(set) var currentValue: Double = 0
@@ -75,7 +75,7 @@ final class SpringAnimator {
 
   /// Creates a new SpringAnimator with the specified spring configuration.
   /// - Parameter spring: The spring to use for animation. Defaults to `.smooth`.
-  init(spring: Spring = .smooth) {
+  init(spring: SpringAnimationConfiguration = .smooth) {
     self.spring = spring
   }
 

@@ -69,7 +69,7 @@ final class SpringScrollAnimator {
 
   /// Creates a new SpringScrollAnimator with the specified spring configuration.
   /// - Parameter spring: The spring to use for animation. Defaults to `.smooth`.
-  init(spring: Spring = .smooth) {
+  init(spring: SpringAnimationConfiguration = .smooth) {
     self.animator = SpringAnimator(spring: spring)
   }
 

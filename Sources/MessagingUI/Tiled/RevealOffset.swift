@@ -5,6 +5,7 @@
 //  Created by Claude on 2025/12/19.
 //
 
+import Combine
 import RubberBanding
 import SwiftUI
 
@@ -15,15 +16,14 @@ import SwiftUI
 /// This object is shared across all cells and automatically triggers
 /// SwiftUI updates when `offset` changes.
 @MainActor
-@Observable
-public final class CellReveal {
+public final class CellReveal: ObservableObject {
 
   /// The raw horizontal reveal offset without rubber banding applied.
   /// - Value of `0` means fully hidden (default state)
   /// - Positive values indicate how far the user has swiped left
   ///
   /// Use `rubberbandedOffset(max:)` to get the offset with rubber band effect.
-  public internal(set) var offset: CGFloat = 0
+  @Published public internal(set) var offset: CGFloat = 0
 
   public init() {}
 

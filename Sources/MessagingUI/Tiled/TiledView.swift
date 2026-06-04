@@ -1732,7 +1732,7 @@ final class TiledUIView<
   private func scrollToContentOffsetY(
     _ offsetY: CGFloat,
     animated: Bool,
-    spring: Spring = .smooth,
+    spring: SpringAnimationConfiguration = .smooth,
     completion: (() -> Void)? = nil
   ) {
     springAnimator?.stop(finished: false)
@@ -2022,7 +2022,7 @@ final class TiledUIView<
       scrollToContentOffsetY(
         targetOffsetY,
         animated: true,
-        spring: Spring(duration: typingIndicatorRemovalAnimationDuration, bounce: 0)
+        spring: .duration(typingIndicatorRemovalAnimationDuration, bounce: 0)
       ) { [weak self] in
         self?.finishTypingIndicatorRemoval(
           generation: removalGeneration,

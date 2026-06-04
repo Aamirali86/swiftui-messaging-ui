@@ -32,7 +32,7 @@ struct LazyVStackDemo: View {
           .padding(.horizontal, 16)
           .padding(.vertical, 8)
         }
-        .onChange(of: messages.count) {
+        .onChange(of: messages.count) { _ in
           if let last = messages.last {
             withAnimation {
               proxy.scrollTo(last.id, anchor: .bottom)

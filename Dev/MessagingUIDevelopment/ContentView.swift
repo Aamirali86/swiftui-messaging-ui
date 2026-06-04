@@ -31,16 +31,18 @@ struct ContentView: View {
     NavigationStack {
       List {
         Section("Featured") {
-          NavigationLink(value: DemoDestination.messengerSwiftData) {
-            Label {
-              VStack(alignment: .leading) {
-                Text("Messenger + SwiftData")
-                Text("Persistent chat with status")
-                  .font(.caption)
-                  .foregroundStyle(.secondary)
+          if #available(iOS 17, *) {
+            NavigationLink(value: DemoDestination.messengerSwiftData) {
+              Label {
+                VStack(alignment: .leading) {
+                  Text("Messenger + SwiftData")
+                  Text("Persistent chat with status")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                }
+              } icon: {
+                Image(systemName: "message.badge.checkmark.fill")
               }
-            } icon: {
-              Image(systemName: "message.badge.checkmark.fill")
             }
           }
         }
@@ -165,29 +167,31 @@ struct ContentView: View {
         }
 
         Section("SwiftData Integration") {
-          NavigationLink(value: DemoDestination.messengerBidirectional) {
-            Label {
-              VStack(alignment: .leading) {
-                Text("Messenger (Bidirectional)")
-                Text("Load from middle, scroll both ways")
-                  .font(.caption)
-                  .foregroundStyle(.secondary)
+          if #available(iOS 17, *) {
+            NavigationLink(value: DemoDestination.messengerBidirectional) {
+              Label {
+                VStack(alignment: .leading) {
+                  Text("Messenger (Bidirectional)")
+                  Text("Load from middle, scroll both ways")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                }
+              } icon: {
+                Image(systemName: "arrow.up.arrow.down")
               }
-            } icon: {
-              Image(systemName: "arrow.up.arrow.down")
             }
-          }
 
-          NavigationLink(value: DemoDestination.swiftDataMemo) {
-            Label {
-              VStack(alignment: .leading) {
-                Text("Memo Stream")
-                Text("SwiftData + TiledView pagination")
-                  .font(.caption)
-                  .foregroundStyle(.secondary)
+            NavigationLink(value: DemoDestination.swiftDataMemo) {
+              Label {
+                VStack(alignment: .leading) {
+                  Text("Memo Stream")
+                  Text("SwiftData + TiledView pagination")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                }
+              } icon: {
+                Image(systemName: "note.text")
               }
-            } icon: {
-              Image(systemName: "note.text")
             }
           }
         }
@@ -213,9 +217,17 @@ struct ContentView: View {
         case .messenger:
           MessengerDemo()
         case .messengerSwiftData:
-          MessengerSwiftDataDemo()
+          if #available(iOS 17, *) {
+            MessengerSwiftDataDemo()
+          } else {
+            Text("Requires iOS 17 or later")
+          }
         case .messengerBidirectional:
-          MessengerSwiftDataDemo(loadPosition: .middle)
+          if #available(iOS 17, *) {
+            MessengerSwiftDataDemo(loadPosition: .middle)
+          } else {
+            Text("Requires iOS 17 or later")
+          }
         case .applyDiffDemo:
           BookApplyDiffDemo()
             .navigationTitle("applyDiff Demo")
@@ -225,8 +237,12 @@ struct ContentView: View {
             .navigationTitle("Batch Update Repro")
             .navigationBarTitleDisplayMode(.inline)
         case .swiftDataMemo:
-          SwiftDataMemoDemo()
-            .navigationBarTitleDisplayMode(.inline)
+          if #available(iOS 17, *) {
+            SwiftDataMemoDemo()
+              .navigationBarTitleDisplayMode(.inline)
+          } else {
+            Text("Requires iOS 17 or later")
+          }
         }
       }
       .navigationDestination(for: ChatMessage.self) { message in

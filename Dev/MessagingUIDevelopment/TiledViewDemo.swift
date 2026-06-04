@@ -368,17 +368,24 @@ struct BookTiledViewLoadingIndicator: View {
 }
 
 #Preview("TiledView (UICollectionView)") {
-  @Previewable @Namespace var namespace
-  NavigationStack {
-    BookTiledView(namespace: namespace)
-      .navigationDestination(for: ChatMessage.self) { message in
-        if #available(iOS 18.0, *) {
-          Text("Detail View for Message ID: \(message.id)")
-            .navigationTransition(.zoom(sourceID: message.id, in: namespace))
-        } else {
-          Text("Detail View for Message ID: \(message.id)")
+  TiledViewCollectionPreview()
+}
+
+private struct TiledViewCollectionPreview: View {
+  @Namespace private var namespace
+
+  var body: some View {
+    NavigationStack {
+      BookTiledView(namespace: namespace)
+        .navigationDestination(for: ChatMessage.self) { message in
+          if #available(iOS 18.0, *) {
+            Text("Detail View for Message ID: \(message.id)")
+              .navigationTransition(.zoom(sourceID: message.id, in: namespace))
+          } else {
+            Text("Detail View for Message ID: \(message.id)")
+          }
         }
-      }
+    }
   }
 }
 

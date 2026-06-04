@@ -11,6 +11,7 @@ import MessagingUI
 
 // MARK: - SwiftData Model
 
+@available(iOS 17, *)
 @Model
 final class ChatMessageModel {
   var text: String
@@ -33,6 +34,7 @@ final class ChatMessageModel {
 
 // MARK: - ChatMessageItem (Identifiable & Equatable wrapper)
 
+@available(iOS 17, *)
 struct ChatMessageItem: Identifiable, Equatable, MessageContentWithStatus {
   let id: PersistentIdentifier
   let text: String
@@ -51,6 +53,7 @@ struct ChatMessageItem: Identifiable, Equatable, MessageContentWithStatus {
 
 // MARK: - ChatMessageCell (with context menu)
 
+@available(iOS 17, *)
 struct ChatMessageCell: TiledCellContent {
   typealias StateValue = Void
 
@@ -74,6 +77,7 @@ struct ChatMessageCell: TiledCellContent {
 
 // MARK: - LoadPosition
 
+@available(iOS 17, *)
 enum LoadPosition {
   case end     // Load from newest (default)
   case middle  // Load from middle
@@ -81,6 +85,7 @@ enum LoadPosition {
 
 // MARK: - ChatStore
 
+@available(iOS 17, *)
 @Observable
 final class ChatStore {
 
@@ -304,6 +309,7 @@ final class ChatStore {
 
 // MARK: - MessengerSwiftDataDemo
 
+@available(iOS 17, *)
 struct MessengerSwiftDataDemo: View {
 
   let loadPosition: LoadPosition
@@ -541,6 +547,7 @@ struct MessengerSwiftDataDemo: View {
 
 // MARK: - Preview
 
+@available(iOS 17, *)
 #Preview {
   let config = ModelConfiguration(isStoredInMemoryOnly: true)
   let container = try! ModelContainer(for: ChatMessageModel.self, configurations: config)

@@ -11,6 +11,7 @@ import MessagingUI
 
 // MARK: - SwiftData Model
 
+@available(iOS 17, *)
 @Model
 final class Memo {
   var text: String
@@ -24,6 +25,7 @@ final class Memo {
 
 // MARK: - MemoItem (Identifiable & Equatable wrapper)
 
+@available(iOS 17, *)
 struct MemoItem: Identifiable, Equatable {
   let id: PersistentIdentifier
   let text: String
@@ -38,6 +40,7 @@ struct MemoItem: Identifiable, Equatable {
 
 // MARK: - MemoBubbleView
 
+@available(iOS 17, *)
 struct MemoBubbleView: View {
 
   let item: MemoItem
@@ -85,6 +88,7 @@ struct MemoBubbleView: View {
 
 // MARK: - MemoBubbleCell (TiledCellContent)
 
+@available(iOS 17, *)
 struct MemoBubbleCell: TiledCellContent {
   typealias StateValue = Void
 
@@ -98,6 +102,7 @@ struct MemoBubbleCell: TiledCellContent {
 
 // MARK: - MemoStore
 
+@available(iOS 17, *)
 @Observable
 final class MemoStore {
 
@@ -202,6 +207,7 @@ final class MemoStore {
 
 // MARK: - SwiftDataMemoDemo
 
+@available(iOS 17, *)
 struct SwiftDataMemoDemo: View {
 
   @Environment(\.modelContext) private var modelContext
@@ -285,6 +291,7 @@ struct SwiftDataMemoDemo: View {
 
 // MARK: - Preview
 
+@available(iOS 17, *)
 #Preview {
   let config = ModelConfiguration(isStoredInMemoryOnly: true)
   let container = try! ModelContainer(for: Memo.self, configurations: config)

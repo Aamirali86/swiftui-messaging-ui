@@ -5,9 +5,10 @@
 //  Created by Hiroshi Kimura on 2025/12/21.
 //
 
+import Combine
 import SwiftUI
 
-/// Per-cell state storage using `@Observable` for automatic SwiftUI updates.
+/// Per-cell state storage using `ObservableObject` for automatic SwiftUI updates.
 ///
 /// Each cell instance gets its own `CellStateStorage` that persists across cell reuse.
 /// When `value` is modified, SwiftUI automatically re-renders the affected views.
@@ -31,11 +32,10 @@ import SwiftUI
 /// }
 /// ```
 @MainActor
-@Observable
-public final class CellStateStorage<Value> {
+public final class CellStateStorage<Value>: ObservableObject {
 
   /// The stored value. Modifications trigger SwiftUI re-renders.
-  public var value: Value
+  @Published public var value: Value
 
   /// Creates a new storage with the given initial value.
   public init(_ initialValue: Value) {

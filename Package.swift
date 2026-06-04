@@ -6,7 +6,7 @@ import PackageDescription
 let package = Package(
   name: "swiftui-messaging-ui",
   platforms: [
-    .iOS(.v17)
+    .iOS(.v16)
   ],
   products: [
     .library(

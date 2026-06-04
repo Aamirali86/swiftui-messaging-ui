@@ -178,7 +178,7 @@ public struct TiledCellContentWrapper<Content: TiledCellContent>: View {
 
   let content: Content
   let cellReveal: CellReveal?
-  let state: CellStateStorage<Content.StateValue>
+  @ObservedObject var state: CellStateStorage<Content.StateValue>
 
   public init(
     content: Content,
@@ -187,10 +187,33 @@ public struct TiledCellContentWrapper<Content: TiledCellContent>: View {
   ) {
     self.content = content
     self.cellReveal = cellReveal
-    self.state = state
+    self._state = ObservedObject(wrappedValue: state)
   }
 
   public var body: some View {
+    if let cellReveal {
+      TiledCellContentWrapperWithReveal(
+        content: content,
+        cellReveal: cellReveal,
+        state: state
+      )
+    } else {
+      content.body(context: CellContext(
+        cellReveal: nil,
+        state: state
+      ))
+    }
+  }
+}
+
+/// Observes shared reveal offset so swipe-to-reveal updates propagate on iOS 16.
+private struct TiledCellContentWrapperWithReveal<Content: TiledCellContent>: View {
+
+  let content: Content
+  @ObservedObject var cellReveal: CellReveal
+  @ObservedObject var state: CellStateStorage<Content.StateValue>
+
+  var body: some View {
     content.body(context: CellContext(
       cellReveal: cellReveal,
       state: state

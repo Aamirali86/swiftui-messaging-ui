@@ -5,26 +5,26 @@
 //  Created by Hiroshi Kimura on 2025/10/27.
 //
 
-import SwiftUI
 import SwiftData
+import SwiftUI
 
 @main
 struct MessagingUIDevelopmentApp: App {
 
-  var sharedModelContainer: ModelContainer = {
-    let schema = Schema([Memo.self, ChatMessageModel.self])
-    let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
-    do {
-      return try ModelContainer(for: schema, configurations: [modelConfiguration])
-    } catch {
-      fatalError("Could not create ModelContainer: \(error)")
-    }
-  }()
-
   var body: some Scene {
     WindowGroup {
+      RootContentView()
+    }
+  }
+}
+
+private struct RootContentView: View {
+  var body: some View {
+    if #available(iOS 17, *) {
+      ContentView()
+        .modelContainer(SharedModelContainer.shared)
+    } else {
       ContentView()
     }
-    .modelContainer(sharedModelContainer)
   }
 }

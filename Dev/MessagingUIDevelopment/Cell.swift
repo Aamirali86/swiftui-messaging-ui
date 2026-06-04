@@ -85,7 +85,7 @@ struct ChatBubbleView: View {
           .buttonStyle(.plain)
 
           Button("Expand") {
-            withAnimation(.smooth) {
+            withAnimation(.easeInOut) {
               state.value.isExpanded.toggle()
             }
           }
@@ -153,15 +153,21 @@ struct ChatBubbleCellWithNavigation: TiledCellContent {
 }
 
 #Preview("SwiftUI Direct") {
-  @Previewable @State var state = CellStateStorage(ChatBubbleCellState())
+  ChatBubbleDirectPreview()
+}
 
-  ChatBubbleView(
-    message: .init(
-      id: 1,
-      text: "昨日の映画、すごく面白かったです！特にラストシーンが印象的でした。もう一度観たいなと思っています。"
-    ),
-    state: state
-  )
+private struct ChatBubbleDirectPreview: View {
+  @State private var state = CellStateStorage(ChatBubbleCellState())
+
+  var body: some View {
+    ChatBubbleView(
+      message: .init(
+        id: 1,
+        text: "昨日の映画、すごく面白かったです！特にラストシーンが印象的でした。もう一度観たいなと思っています。"
+      ),
+      state: state
+    )
+  }
 }
 struct HostingControllerWrapper<Content: View>: UIViewControllerRepresentable {
   let content: Content
@@ -203,27 +209,38 @@ struct HostingControllerWrapper<Content: View>: UIViewControllerRepresentable {
   }
 }
 #Preview("UIHostingController") {
+  ChatBubbleHostingPreview()
+}
 
-  @Previewable @State var size: CGSize = .zero
-  @Previewable @State var state = CellStateStorage(ChatBubbleCellState())
+private struct ChatBubbleHostingPreview: View {
+  @State private var size: CGSize = .zero
+  @State private var state = CellStateStorage(ChatBubbleCellState())
 
-  VStack {
-    Text("Size: \(size.width) x \(size.height)")
-    ZStack {
-      HostingControllerWrapper(
-        content:
-            ChatBubbleView(
-              message: .init(
-                id: 1,
-                text: "昨日の映画、すごく面白かったです！特にラストシーンが印象的でした。もう一度観たいなと思っています。"
-              ),
-              state: state
-            )
-      )
-    }
-    .background(.red)
-    .onGeometryChange(for: CGSize.self, of: \.size) { n in
-      size = n
+  var body: some View {
+    VStack {
+      Text("Size: \(size.width) x \(size.height)")
+      ZStack {
+        HostingControllerWrapper(
+          content:
+              ChatBubbleView(
+                message: .init(
+                  id: 1,
+                  text: "昨日の映画、すごく面白かったです！特にラストシーンが印象的でした。もう一度観たいなと思っています。"
+                ),
+                state: state
+              )
+        )
+      }
+      .background(.red)
+      .background {
+        GeometryReader { geometry in
+          Color.clear
+            .onAppear { size = geometry.size }
+            .onChange(of: geometry.size) { newSize in
+              size = newSize
+            }
+        }
+      }
     }
   }
 }
